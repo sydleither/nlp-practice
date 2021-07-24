@@ -1,5 +1,6 @@
 from preprocessing import train_test_val
 
+import io
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
@@ -23,7 +24,7 @@ def binary_classification_nn():
     val_vector = vectorize_layer(X_val)
 
     model = tf.keras.Sequential([
-        layers.Embedding(10000 + 1, 16),
+        layers.Embedding(10000 + 1, 16, name='embedding'),
         layers.Dropout(0.2),
         layers.GlobalAveragePooling1D(),
         layers.Dropout(0.2),
@@ -39,7 +40,12 @@ def binary_classification_nn():
     print("Accuracy: ", accuracy)
     
     plot_model(history)
+    word_embeddings(model, vectorize_layer)
     
+    
+#https://www.tensorflow.org/tutorials/text/word2vec
+def word2vec_embeddings():
+    return
     
 #taken from https://www.tensorflow.org/tutorials/keras/text_classification#create_a_plot_of_accuracy_and_loss_over_time
 def plot_model(history):
@@ -67,6 +73,24 @@ def plot_model(history):
     plt.ylabel('Accuracy')
     plt.legend(loc='lower right')
     plt.show()
+    
+    
+#taken from https://www.tensorflow.org/text/guide/word_embeddings
+def word_embeddings(model, vectorize_layer):
+    weights = model.get_layer('embedding').get_weights()[0]
+    vocab = vectorize_layer.get_vocabulary()
+    
+    out_v = io.open('vectors.tsv', 'w', encoding='utf-8')
+    out_m = io.open('metadata.tsv', 'w', encoding='utf-8')
+    
+    for index, word in enumerate(vocab):
+      if index == 0:
+        continue
+      vec = weights[index]
+      out_v.write('\t'.join([str(x) for x in vec]) + "\n")
+      out_m.write(word + "\n")
+    out_v.close()
+    out_m.close()
     
     
 binary_classification_nn()
