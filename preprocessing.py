@@ -2,6 +2,8 @@ import numpy as np
 from random import shuffle
 from nltk.stem import WordNetLemmatizer
 import re
+import tensorflow as tf
+import string
 
 
 def train_test_val():
@@ -31,7 +33,14 @@ def standardization(data):
     
     custom = data.lower()
     custom = re.sub(r'[^ ]+\.[^ ]+', '[LINK]', custom)
-    custom = re.sub(r'[^a-zA-Z0-9_ ]', '', custom)
+    custom = re.sub(r'[!"#\$%&\'\(\)\*\+,-\.\/:;<=>\?@\^_`{\|}~]', '', custom)
     custom = lemmatizer.lemmatize(custom)
     
+    return custom
+
+
+def standardization_tf(data):
+    custom = tf.strings.lower(data)
+    custom = tf.strings.regex_replace(custom, r'[^ ]+\.[^ ]+', 'LINK')
+    custom = tf.strings.regex_replace(custom, r'[!"#\$%&\'\(\)\*\+,-\.\/:;<=>\?@\^_`{\|}~]', '')
     return custom
