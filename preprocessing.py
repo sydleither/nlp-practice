@@ -3,7 +3,6 @@ from random import shuffle
 from nltk.stem import WordNetLemmatizer
 import re
 import tensorflow as tf
-import string
 
 
 def train_test_val():
@@ -17,7 +16,7 @@ def train_test_val():
     for text in messages:
         split = text.split('\t', 1)
         if len(split) == 2 and len(split[1]) > 0:
-            X.append(standardization(split[1])) #standardize for word embeddings
+            X.append(split[1])
             y.append(split[0])
             
     y = [1 if label == '[Sydney]' else 0 for label in y]

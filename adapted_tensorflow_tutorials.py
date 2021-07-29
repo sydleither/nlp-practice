@@ -4,6 +4,7 @@ import io
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tqdm
+import numpy as np
 
 from tensorflow.keras import layers
 from tensorflow.keras import losses
@@ -39,6 +40,8 @@ def binary_classification_nn():
 
     history = model.fit(train_vector, y_train, validation_data=(val_vector, y_val), epochs=10)
     loss, accuracy = model.evaluate(test_vector, y_test)
+    print('Test Loss:', loss)
+    print('Test Accuracy:', accuracy)
     
     plot_model(history)
     save_word_embeddings(model, vectorize_layer)
@@ -75,6 +78,35 @@ def word2vec_embeddings():
     plot_model_no_val(history)
     save_word_embeddings(word2vec, vectorize_layer)
     
+    
+#based on https://www.tensorflow.org/text/tutorials/text_classification_rnn
+def binary_classification_rnn():
+    X_train, y_train, X_test, y_test, X_val, y_val = train_test_val()
+    
+    vectorize_layer = TextVectorization(max_tokens=10000)
+    vectorize_layer.adapt(X_train)
+    
+    model = tf.keras.Sequential([
+        vectorize_layer,
+        tf.keras.layers.Embedding(len(vectorize_layer.get_vocabulary()), 64, mask_zero=True),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64,  return_sequences=True)),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32)),
+        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(1)
+    ])
+
+    model.compile(loss=losses.BinaryCrossentropy(from_logits=True),
+        optimizer=tf.keras.optimizers.Adam(1e-4),
+        metrics=tf.metrics.BinaryAccuracy(threshold=0.0))
+    
+    history = model.fit(x=X_train, y=y_train, validation_data=(X_val, y_val), epochs=10)
+    loss, accuracy = model.evaluate(X_test, y_test)
+    print('Test Loss:', loss)
+    print('Test Accuracy:', accuracy)
+    
+    plot_model(history)
+
 
 #from https://www.tensorflow.org/tutorials/text/word2vec#generate_training_data
 def generate_training_data(sequences, window_size, num_ns, vocab_size, seed):
@@ -215,5 +247,4 @@ def save_word_embeddings(model, vectorize_layer):
     out_m.close()
     
     
-#binary_classification_nn()
-word2vec_embeddings()
+binary_classification_rnn()
